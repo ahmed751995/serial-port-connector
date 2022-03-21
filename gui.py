@@ -27,27 +27,33 @@ def create_gui(app, ser):
             if port_name :
                 port = ports_list[port_name]
             
-                port = '/dev/pts/2'
                 ser.set_default_port(port)
-                conn = ser.connect_port()
-                if conn['result'] == True:
-                    server = Process(target=app.run)
-                    server.start()
-                    sg.SystemTray.notify('Success', f'Pot {port_name} connected Successfully')
-                    # print(ser.measure_scaler(conn['port']))
-                else:
+                try:
+                    conn = ser.connect_port()
+                    if conn['result'] == True:
+                        server = Process(target=app.run)
+                        server.start()
+                        sg.SystemTray.notify('Success', f'Pot {port_name} connected Successfully')
+                        # print(ser.measure_scaler(conn['port']))
+                    else:
+                        sg.SystemTray.notify('Failed', f'Pot {port_name} failed to connect')
+                except:
                     sg.SystemTray.notify('Failed', f'Pot {port_name} failed to connect')
+
             else:
                 sg.SystemTray.notify('Error', f'Please select port')
         
         if event == 'Disconnect' or event == sg.WIN_CLOSED or event == 'Close':
-            conn = ser.disconnect_port()
-            if conn['result'] == True:
-                server.terminate()
-                server.join()
-                sg.SystemTray.notify('Success', f'Port {port_name} disconnected Successfully')
-            else:
-                sg.SystemTray.notify('Failed', 'Port failed to connect')
+            try:
+                conn = ser.disconnect_port()
+                if conn['result'] == True:
+                    server.terminate()
+                    server.join()
+                    sg.SystemTray.notify('Success', f'Port {port_name} disconnected Successfully')
+                else:
+                     sg.SystemTray.notify('Failed', 'Port failed to disconnect')
+            except: # if faced authorization error
+                sg.SystemTray.notify('Failed', 'Port failed to disconnect')
         
         if event == sg.WIN_CLOSED or event == 'Close': # if user closes window or clicks cancel
             break
